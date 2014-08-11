@@ -20,8 +20,8 @@ const (
 	uepoch = int64(946728000.0)
 )
 
-//Loc gives sunrise and sunset times.
-type Loc struct {
+//Location gives sunrise and sunset times.
+type Location struct {
 	location        *time.Location
 	sinLat          float64
 	cosLat          float64
@@ -30,19 +30,18 @@ type Loc struct {
 	hourAngleInDays float64
 }
 
-// New computes the sunrise and sunset times for latitude and longitude
+// NewLocation computes the sunrise and sunset times for latitude and longitude
 // around currentTime. Generally, the computed sunrise will be no earlier
 // than 24 hours before currentTime and the computed sunset will be no later
 // than 24 hours after currentTime. However, these differences may exceed 24
 // hours on days with more than 23 hours of daylight.
 // The latitude is positive for north and negative for south. Longitude is
 // positive for east and negative for west.
-//New
-func NewLoc(latitude float64, longitude float64, currentTime time.Time) *Loc {
+func NewLocation(latitude float64, longitude float64, currentTime time.Time) *Location {
 	js := math.Floor(
 		julianDay(currentTime.Unix())-0.0009+longitude/360.0+0.5) + 0.0009 - longitude/360.0
 
-	l := &Loc{
+	l := &Location{
 		location: currentTime.Location(),
 		sinLat:   sin(latitude),
 		cosLat:   cos(latitude),
@@ -57,24 +56,24 @@ func NewLoc(latitude float64, longitude float64, currentTime time.Time) *Loc {
 // AddDays computes the sunrise and sunset numDays after
 // (or before if numDays is negative) the current sunrise and sunset at the
 // same latitude and longitude.
-func (l *Loc) AddDays(numDays int) {
+func (l *Location) AddDays(numDays int) {
 	l.jstar += float64(numDays)
 	l.computeSolarNoonHourAngle()
 }
 
 // Sunrise returns the current computed sunrise. Returned sunrise has the same
 // location as the time passed to Around.
-func (l *Loc) Sunrise() time.Time {
+func (l *Location) Sunrise() time.Time {
 	return goTime(l.solarNoon-l.hourAngleInDays, l.location)
 }
 
 // Sunset returns the current computed sunset. Returned sunset has the same
 // location as the time passed to Around.
-func (l *Loc) Sunset() time.Time {
+func (l *Location) Sunset() time.Time {
 	return goTime(l.solarNoon+l.hourAngleInDays, l.location)
 }
 
-func (l *Loc) computeSolarNoonHourAngle() {
+func (l *Location) computeSolarNoonHourAngle() {
 	ma := mod360(357.5291 + 0.98560028*(l.jstar-jepoch))
 	center := 1.9148*sin(ma) + 0.02*sin(2.0*ma) + 0.0003*sin(3.0*ma)
 	el := mod360(ma + 102.9372 + center + 180.0)
