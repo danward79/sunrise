@@ -20,8 +20,8 @@ const (
 	uepoch = int64(946728000.0)
 )
 
-// Location gives sunrise and sunset times.
-type Location struct {
+//Loc gives sunrise and sunset times.
+type Loc struct {
 	location        *time.Location
 	sinLat          float64
 	cosLat          float64
@@ -37,11 +37,12 @@ type Location struct {
 // hours on days with more than 23 hours of daylight.
 // The latitude is positive for north and negative for south. Longitude is
 // positive for east and negative for west.
-func New(latitude, longitude float64, currentTime time.Time) *Location {
+//New
+func NewLoc(latitude float64, longitude float64, currentTime time.Time) *Loc {
 	js := math.Floor(
 		julianDay(currentTime.Unix())-0.0009+longitude/360.0+0.5) + 0.0009 - longitude/360.0
 
-	l := &Location{
+	l := &Loc{
 		location: currentTime.Location(),
 		sinLat:   sin(latitude),
 		cosLat:   cos(latitude),
@@ -56,24 +57,24 @@ func New(latitude, longitude float64, currentTime time.Time) *Location {
 // AddDays computes the sunrise and sunset numDays after
 // (or before if numDays is negative) the current sunrise and sunset at the
 // same latitude and longitude.
-func (l *Location) AddDays(numDays int) {
+func (l *Loc) AddDays(numDays int) {
 	l.jstar += float64(numDays)
 	l.computeSolarNoonHourAngle()
 }
 
 // Sunrise returns the current computed sunrise. Returned sunrise has the same
 // location as the time passed to Around.
-func (l *Location) Sunrise() time.Time {
+func (l *Loc) Sunrise() time.Time {
 	return goTime(l.solarNoon-l.hourAngleInDays, l.location)
 }
 
 // Sunset returns the current computed sunset. Returned sunset has the same
 // location as the time passed to Around.
-func (l *Location) Sunset() time.Time {
+func (l *Loc) Sunset() time.Time {
 	return goTime(l.solarNoon+l.hourAngleInDays, l.location)
 }
 
-func (l *Location) computeSolarNoonHourAngle() {
+func (l *Loc) computeSolarNoonHourAngle() {
 	ma := mod360(357.5291 + 0.98560028*(l.jstar-jepoch))
 	center := 1.9148*sin(ma) + 0.02*sin(2.0*ma) + 0.0003*sin(3.0*ma)
 	el := mod360(ma + 102.9372 + center + 180.0)
