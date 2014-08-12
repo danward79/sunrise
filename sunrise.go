@@ -41,6 +41,8 @@ type Location struct {
 // positive for east and negative for west.
 func NewLocation(latitude float64, longitude float64) *Location {
 	currentTime := time.Now()
+
+	//TODO Move this calc to func
 	js := math.Floor(
 		julianDay(currentTime.Unix())-0.0009+longitude/360.0+0.5) + 0.0009 - longitude/360.0
 
@@ -48,9 +50,10 @@ func NewLocation(latitude float64, longitude float64) *Location {
 		location:  currentTime.Location(),
 		latitude:  latitude,
 		longitude: longitude,
-		sinLat:    sin(latitude),
-		cosLat:    cos(latitude),
-		jstar:     js,
+		//TODO: Move this calc out to func
+		sinLat: sin(latitude),
+		cosLat: cos(latitude),
+		jstar:  js,
 	}
 
 	l.computeSolarNoonHourAngle()
@@ -61,11 +64,9 @@ func NewLocation(latitude float64, longitude float64) *Location {
 //Today updates instance to allow calculation of today's sunrise and sunset
 func (l *Location) Today() {
 	currentTime := time.Now()
-	js := math.Floor(
-		julianDay(currentTime.Unix())-0.0009+l.longitude/360.0+0.5) + 0.0009 - l.longitude/360.0
 
-	l.location = currentTime.Location()
-	l.jstar = js
+	l.jstar = math.Floor(
+		julianDay(currentTime.Unix())-0.0009+l.longitude/360.0+0.5) + 0.0009 - l.longitude/360.0
 
 	l.computeSolarNoonHourAngle()
 }
