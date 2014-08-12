@@ -23,6 +23,8 @@ const (
 //Location gives sunrise and sunset times.
 type Location struct {
 	location        *time.Location
+	latitude        float64
+	longitude       float64
 	sinLat          float64
 	cosLat          float64
 	jstar           float64
@@ -37,20 +39,35 @@ type Location struct {
 // hours on days with more than 23 hours of daylight.
 // The latitude is positive for north and negative for south. Longitude is
 // positive for east and negative for west.
-func NewLocation(latitude float64, longitude float64, currentTime time.Time) *Location {
+func NewLocation(latitude float64, longitude float64) *Location {
+	currentTime := time.Now()
 	js := math.Floor(
 		julianDay(currentTime.Unix())-0.0009+longitude/360.0+0.5) + 0.0009 - longitude/360.0
 
 	l := &Location{
-		location: currentTime.Location(),
-		sinLat:   sin(latitude),
-		cosLat:   cos(latitude),
-		jstar:    js,
+		location:  currentTime.Location(),
+		latitude:  latitude,
+		longitude: longitude,
+		sinLat:    sin(latitude),
+		cosLat:    cos(latitude),
+		jstar:     js,
 	}
 
 	l.computeSolarNoonHourAngle()
 
 	return l
+}
+
+//Today updates instance to allow calculation of today's sunrise and sunset
+func (l *Location) Today() {
+	currentTime := time.Now()
+	js := math.Floor(
+		julianDay(currentTime.Unix())-0.0009+l.longitude/360.0+0.5) + 0.0009 - l.longitude/360.0
+
+	l.location = currentTime.Location()
+	l.jstar = js
+
+	l.computeSolarNoonHourAngle()
 }
 
 // AddDays computes the sunrise and sunset numDays after
