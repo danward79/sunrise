@@ -3,6 +3,8 @@
 // license that can be found in the LICENSE file or
 // at http://opensource.org/licenses/BSD-3-Clause.
 
+//This library is a modified version of the library at http://godoc.org/github.com/keep94/sunrise
+
 // Package sunrise computes sunrises and sunsets using wikipedia article
 // http://en.wikipedia.org/wiki/Sunrise_equation. Testing at my
 // latitude and longitude in California shows that computed sunrises and
@@ -25,8 +27,6 @@ type Location struct {
 	location        *time.Location
 	latitude        float64
 	longitude       float64
-	sinLat          float64
-	cosLat          float64
 	jstar           float64
 	solarNoon       float64
 	hourAngleInDays float64
@@ -40,20 +40,11 @@ type Location struct {
 // The latitude is positive for north and negative for south. Longitude is
 // positive for east and negative for west.
 func NewLocation(latitude float64, longitude float64) *Location {
-	currentTime := time.Now()
-
-	//TODO Move this calc to func
-	js := math.Floor(
-		julianDay(currentTime.Unix())-0.0009+longitude/360.0+0.5) + 0.0009 - longitude/360.0
-
 	l := &Location{
-		location:  currentTime.Location(),
+		location:  time.Now().Location(),
 		latitude:  latitude,
 		longitude: longitude,
-		//TODO: Move this calc out to func
-		sinLat: sin(latitude),
-		cosLat: cos(latitude),
-		jstar:  js,
+		jstar:     jStar(longitude),
 	}
 
 	l.computeSolarNoonHourAngle()
@@ -61,12 +52,9 @@ func NewLocation(latitude float64, longitude float64) *Location {
 	return l
 }
 
-//Today updates instance to allow calculation of today's sunrise and sunset
+//Today updates instance for calculation of today's sunrise and sunset
 func (l *Location) Today() {
-	currentTime := time.Now()
-
-	l.jstar = math.Floor(
-		julianDay(currentTime.Unix())-0.0009+l.longitude/360.0+0.5) + 0.0009 - l.longitude/360.0
+	l.jstar = jStar(l.longitude)
 
 	l.computeSolarNoonHourAngle()
 }
@@ -97,11 +85,16 @@ func (l *Location) computeSolarNoonHourAngle() {
 	el := mod360(ma + 102.9372 + center + 180.0)
 	l.solarNoon = l.jstar + 0.0053*sin(ma) - 0.0069*sin(2.0*el)
 	declination := asin(sin(el) * sin(23.45))
-	l.hourAngleInDays = acos((sin(-0.83)-l.sinLat*sin(declination))/(l.cosLat*cos(declination))) / 360.0
+	l.hourAngleInDays = acos((sin(-0.83)-sin(l.latitude)*sin(declination))/(cos(l.latitude)*cos(declination))) / 360.0
 }
 
 func julianDay(unix int64) float64 {
 	return float64(unix-uepoch)/86400.0 + jepoch
+}
+
+func jStar(longitude float64) float64 {
+	return math.Floor(
+		julianDay(time.Now().Unix())-0.0009+longitude/360.0+0.5) + 0.0009 - longitude/360.0
 }
 
 func goTime(julianDay float64, loc *time.Location) time.Time {
