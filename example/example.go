@@ -12,6 +12,10 @@ func main() {
 	formatStr := "Jan 2 15:04:05"
 
 	melbourne.Today()
-	fmt.Println(melbourne.Sunrise().Format(formatStr))
+
 	fmt.Println(melbourne.Sunset().Format(formatStr))
+
+	melbourne.AddDays(1)
+
+	fmt.Println(melbourne.Sunrise().Format(formatStr))
 }
