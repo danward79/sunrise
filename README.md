@@ -39,6 +39,7 @@ import (
 func main() {
 	//Melbourne -37.81, 144.96
 	melbourne := sunrise.NewLocation(-37.81, 144.96)
+	fmt.Println(melbourne)
 
 	formatStr := "Jan 2 15:04:05"
 
