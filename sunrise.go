@@ -55,7 +55,7 @@ func NewLocation(latitude float64, longitude float64) *Location {
 
 //String interface to show location details
 func (l *Location) String() string {
-	return fmt.Sprintf("Calculation Details: Lat %.3f, Long %.3f", l.latitude, l.longitude)
+	return fmt.Sprintf("Calculation Details - Lat: %.3f, Long: %.3f", l.latitude, l.longitude)
 }
 
 //Today updates instance for calculation of today's sunrise and sunset
